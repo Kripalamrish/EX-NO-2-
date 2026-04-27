@@ -1,12 +1,7 @@
 ## EX. NO:2 IMPLEMENTATION OF PLAYFAIR CIPHER
 
- 
 
 ## AIM:
- 
-
- 
-
 To write a C program to implement the Playfair Substitution technique.
 
 ## DESCRIPTION:
@@ -35,9 +30,137 @@ STEP-5: Display the obtained cipher text.
 
 
 Program:
+```
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
 
+#define SIZE 5
 
+char keyTable[SIZE][SIZE];
+void generateKeyTable(char key[]) {
+    int used[26] = {0};
+    int i, j, k = 0;
+    used['J' - 'A'] = 1;
 
+    for (i = 0; key[i] != '\0'; i++) {
+        char ch = toupper(key[i]);
+        if (ch == 'J') ch = 'I';
+        if (!used[ch - 'A'] && isalpha(ch)) {
+            keyTable[k / SIZE][k % SIZE] = ch;
+            used[ch - 'A'] = 1;
+            k++;
+        }
+    }
 
+    for (i = 0; i < 26; i++) {
+        if (!used[i]) {
+            keyTable[k / SIZE][k % SIZE] = 'A' + i;
+            k++;
+        }
+    }
+}
+void findPosition(char ch, int *row, int *col) {
+    if (ch == 'J') ch = 'I';
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (keyTable[i][j] == ch) {
+                *row = i;
+                *col = j;
+                return;
+            }
+        }
+    }
+}
+void prepareText(char input[], char output[]) {
+    int i, j = 0;
+    for (i = 0; input[i] != '\0'; i++) {
+        if (isalpha(input[i])) {
+            output[j++] = toupper(input[i]);
+        }
+    }
+    output[j] = '\0';
 
-Output:
+    for (i = 0; i < j; i += 2) {
+        if (output[i] == output[i + 1]) {
+            for (int k = j; k > i + 1; k--) {
+                output[k] = output[k - 1];
+            }
+            output[i + 1] = 'X';
+            j++;
+        }
+    }
+
+    if (j % 2 != 0) {
+        output[j++] = 'X';
+    }
+    output[j] = '\0';
+}
+void encrypt(char text[]) {
+    int i, r1, c1, r2, c2;
+
+    for (i = 0; text[i] != '\0'; i += 2) {
+        findPosition(text[i], &r1, &c1);
+        findPosition(text[i + 1], &r2, &c2);
+
+        if (r1 == r2) {
+            text[i] = keyTable[r1][(c1 + 1) % SIZE];
+            text[i + 1] = keyTable[r2][(c2 + 1) % SIZE];
+        } else if (c1 == c2) {
+            text[i] = keyTable[(r1 + 1) % SIZE][c1];
+            text[i + 1] = keyTable[(r2 + 1) % SIZE][c2];
+        } else {
+            text[i] = keyTable[r1][c2];
+            text[i + 1] = keyTable[r2][c1];
+        }
+    }
+}
+void decrypt(char text[]) {
+    int i, r1, c1, r2, c2;
+
+    for (i = 0; text[i] != '\0'; i += 2) {
+        findPosition(text[i], &r1, &c1);
+        findPosition(text[i + 1], &r2, &c2);
+
+        if (r1 == r2) {
+            text[i] = keyTable[r1][(c1 + SIZE - 1) % SIZE];
+            text[i + 1] = keyTable[r2][(c2 + SIZE - 1) % SIZE];
+        } else if (c1 == c2) {
+            text[i] = keyTable[(r1 + SIZE - 1) % SIZE][c1];
+            text[i + 1] = keyTable[(r2 + SIZE - 1) % SIZE][c2];
+        } else {
+            text[i] = keyTable[r1][c2];
+            text[i + 1] = keyTable[r2][c1];
+        }
+    }
+}
+
+int main() {
+    char key[100], text[100], prepared[100];
+
+    printf("Enter key: ");
+    scanf("%s", key);
+
+    generateKeyTable(key);
+
+    printf("Enter plaintext: ");
+    scanf("%s", text);
+
+    prepareText(text, prepared);
+
+    printf("Prepared Text: %s\n", prepared);
+
+    encrypt(prepared);
+    printf("Encrypted Text: %s\n", prepared);
+
+    decrypt(prepared);
+    printf("Decrypted Text: %s\n", prepared);
+
+    return 0;
+}
+```
+## Output:
+<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/218aa0de-afb5-4eb8-91fc-71cbdef40300" />
+
+## Result:
+Thus the programm is executed successfully.
